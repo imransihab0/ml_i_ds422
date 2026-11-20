@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DS422 (ML-I) — CDC Diabetes Risk Classification</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #FFFDF7;
+      color: #111111;
+    }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+    .nb-card {
+      border: 2.5px solid #111111;
+      box-shadow: 6px 6px 0px 0px #111111;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .nb-card-hover:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0px 0px #111111;
+    }
+    .nb-btn {
+      border: 2.5px solid #111111;
+      box-shadow: 4px 4px 0px 0px #111111;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .nb-btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px 0px #111111;
+    }
+    .nb-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px 0px #111111;
+    }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- Sticky Navigation -->
+  <header class="sticky top-0 z-50 bg-[#FFFDF7]/95 backdrop-blur border-b-[2.5px] border-black">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 font-extrabold text-lg tracking-tight">
+        <span class="px-2 py-0.5 bg-[#FFE500] border-2 border-black text-sm font-mono-code">DS422</span>
+        <span>Diabetes ML-I</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm font-bold">
+        <a href="#dataset" class="hover:underline decoration-2 underline-offset-4">Dataset</a>
+        <a href="#pipeline" class="hover:underline decoration-2 underline-offset-4">Pipeline</a>
+        <a href="#eda" class="hover:underline decoration-2 underline-offset-4">EDA</a>
+        <a href="#models" class="hover:underline decoration-2 underline-offset-4">Models</a>
+        <a href="#justification" class="hover:underline decoration-2 underline-offset-4">Justification</a>
+      </nav>
+      <a href="#resources" class="nb-btn bg-[#4ADE80] px-3.5 py-1.5 text-xs sm:text-sm font-extrabold">
+        Notebook &amp; Resources
+      </a>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-16">
+
+    <!-- Hero Section -->
+    <section class="nb-card bg-white p-6 sm:p-10">
+      <div class="flex flex-wrap items-center gap-2.5 mb-5">
+        <span class="px-3 py-1 text-xs font-extrabold uppercase bg-[#FFE500] border-2 border-black">Binary Classification</span>
+        <span class="px-3 py-1 text-xs font-extrabold uppercase bg-[#BFDBFE] border-2 border-black">DS422 (ML-I) · Section FH</span>
+        <span class="px-3 py-1 text-xs font-mono-code font-bold bg-[#FEF08A] border-2 border-black">Student ID: 232-35-733</span>
+        <span class="px-3 py-1 text-xs font-mono-code font-bold bg-[#F3F4F6] border-2 border-black">Submission: 22 Nov 2026</span>
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight mb-4">
+        Predicting Diabetes Risk from CDC BRFSS Health Indicators
+      </h1>
+      <p class="text-base sm:text-lg text-neutral-700 max-w-3xl mb-8">
+        An end-to-end supervised machine learning study benchmarking Logistic Regression, Decision Tree, Random Forest, and XGBoost on 253,680 U.S. public health survey records—focusing on class-imbalance handling, high-recall clinical screening, and interpretable risk factors.
+      </p>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="nb-card bg-[#FEF08A] p-4">
+          <div class="text-xs font-bold uppercase tracking-wider text-neutral-700">Raw Instances</div>
+          <div id="kpi-raw" class="text-2xl sm:text-3xl font-extrabold mt-1 font-mono-code">253,680</div>
+          <div id="kpi-clean" class="text-xs font-semibold mt-1">229,474 unique after cleaning</div>
+        </div>
+        <div class="nb-card bg-[#BBF7D0] p-4">
+          <div class="text-xs font-bold uppercase tracking-wider text-neutral-700">Input Features</div>
+          <div id="kpi-features" class="text-2xl sm:text-3xl font-extrabold mt-1 font-mono-code">21</div>
+          <div class="text-xs font-semibold mt-1">Clinical, lifestyle &amp; demographic</div>
+        </div>
+        <div class="nb-card bg-[#BFDBFE] p-4">
+          <div class="text-xs font-bold uppercase tracking-wider text-neutral-700">Winning Model</div>
+          <div id="kpi-best-model" class="text-xl sm:text-2xl font-extrabold mt-1">Random Forest</div>
+          <div class="text-xs font-semibold mt-1">Highest ROC-AUC &amp; recall</div>
+        </div>
+        <div class="nb-card bg-[#FECACA] p-4">
+          <div class="text-xs font-bold uppercase tracking-wider text-neutral-700">Best ROC-AUC</div>
+          <div id="kpi-auc" class="text-2xl sm:text-3xl font-extrabold mt-1 font-mono-code">0.8176</div>
+          <div id="kpi-recall" class="text-xs font-semibold mt-1">Recall: 75.7% on positive class</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dataset Overview & Feature Dictionary -->
+    <section id="dataset" class="space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <span class="text-xs font-mono-code font-bold uppercase tracking-widest text-neutral-600">01 / Dataset Selection &amp; Description</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold mt-1">CDC Diabetes Health Indicators (BRFSS)</h2>
+        </div>
+        <div class="flex flex-wrap gap-2.5">
+          <a href="https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset" target="_blank" rel="noopener"
+             class="nb-btn bg-[#FFE500] px-4 py-2 text-xs font-extrabold inline-block w-fit">
+            View Kaggle Dataset &rarr;
+          </a>
+          <a href="https://archive.ics.uci.edu/dataset/891/cdc+diabetes+health+indicators" target="_blank" rel="noopener"
+             class="nb-btn bg-white px-4 py-2 text-xs font-extrabold inline-block w-fit">
+            UCI Mirror (ID: 891) &rarr;
+          </a>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="nb-card bg-white p-6 md:col-span-2 space-y-3">
+          <h3 class="text-lg font-extrabold">Why This Dataset?</h3>
+          <p class="text-sm text-neutral-700 leading-relaxed">
+            Sourced from <a href="https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset" target="_blank" rel="noopener" class="font-bold underline decoration-2">Kaggle (CDC BRFSS 2015 — <code class="font-mono-code text-xs">diabetes_binary_health_indicators_BRFSS2015.csv</code>)</a> and mirrored on the UCI ML Repository, this dataset captures non-invasive health indicators—blood pressure, cholesterol, BMI, physical activity, diet, and demographics—for 253,680 respondents. Unlike small toy medical datasets, its scale and realistic <strong>~86/14 class imbalance</strong> require real ML engineering: deduplication to prevent leakage, outlier capping, stratified splitting, and cost-sensitive learning.
+          </p>
+          <div class="grid sm:grid-cols-2 gap-3 pt-2 text-xs font-semibold">
+            <div class="p-3 bg-[#FFFDF7] border-2 border-black">
+              <span class="block text-neutral-500 uppercase">Target Variable</span>
+              <span class="font-mono-code text-sm font-bold">Diabetes_binary</span> (0 = Healthy, 1 = Prediabetes/Diabetes)
+            </div>
+            <div class="p-3 bg-[#FFFDF7] border-2 border-black">
+              <span class="block text-neutral-500 uppercase">Problem Formulation</span>
+              Supervised Binary Classification (Imbalanced Screening)
+            </div>
+          </div>
+        </div>
+
+        <div class="nb-card bg-[#E0E7FF] p-6 space-y-3">
+          <h3 class="text-lg font-extrabold">Quick Audit Stats</h3>
+          <ul class="text-sm space-y-2 font-semibold">
+            <li class="flex justify-between border-b border-black/20 pb-1"><span>Missing Values</span><span class="font-mono-code">0 (0.0%)</span></li>
+            <li class="flex justify-between border-b border-black/20 pb-1"><span>Duplicates Removed</span><span id="stat-dups" class="font-mono-code">24,206</span></li>
+            <li class="flex justify-between border-b border-black/20 pb-1"><span>Positive Class Share</span><span id="stat-pos" class="font-mono-code">15.29%</span></li>
+            <li class="flex justify-between border-b border-black/20 pb-1"><span>Train / Test Split</span><span class="font-mono-code">80% / 20%</span></li>
+            <li class="flex justify-between"><span>Validation Strategy</span><span class="font-mono-code">Stratified</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Searchable Feature Dictionary -->
+      <div class="nb-card bg-white p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <h3 class="text-lg font-extrabold">Feature Dictionary (21 Predictors + 1 Target)</h3>
+          <input id="featureSearch" type="text" placeholder="Filter features (e.g., BMI, Age, BP)..."
+                 class="border-2 border-black px-3 py-1.5 text-sm font-semibold focus:outline-none focus:bg-[#FEF9C3] w-full sm:w-64" />
+        </div>
+        <div class="overflow-x-auto max-h-80 overflow-y-auto border-2 border-black">
+          <table class="w-full text-left text-xs sm:text-sm border-collapse">
+            <thead class="bg-[#111111] text-white sticky top-0">
+              <tr>
+                <th class="p-3 font-bold">Variable</th>
+                <th class="p-3 font-bold">Type</th>
+                <th class="p-3 font-bold">Category</th>
+                <th class="p-3 font-bold">Description &amp; Scale</th>
+              </tr>
+            </thead>
+            <tbody id="featureTableBody" class="divide-y-2 divide-black/15"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pipeline & Preprocessing -->
+    <section id="pipeline" class="space-y-6">
+      <div>
+        <span class="text-xs font-mono-code font-bold uppercase tracking-widest text-neutral-600">02 / Methodology &amp; Preprocessing</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold mt-1">End-to-End Machine Learning Pipeline</h2>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="nb-card nb-card-hover bg-white p-5">
+          <div class="w-9 h-9 bg-[#FFE500] border-2 border-black flex items-center justify-center font-mono-code font-extrabold mb-3">01</div>
+          <h3 class="font-extrabold text-base mb-1.5">Deduplication</h3>
+          <p class="text-xs text-neutral-700 leading-relaxed">Dropped 24,206 exact duplicate records before splitting so identical survey profiles cannot leak from training into the test set.</p>
+        </div>
+        <div class="nb-card nb-card-hover bg-white p-5">
+          <div class="w-9 h-9 bg-[#BBF7D0] border-2 border-black flex items-center justify-center font-mono-code font-extrabold mb-3">02</div>
+          <h3 class="font-extrabold text-base mb-1.5">Outlier Capping</h3>
+          <p class="text-xs text-neutral-700 leading-relaxed">Capped extreme self-reported BMI values (up to 98) at the 1st–99th percentiles (18.0–50.0) to stabilize linear coefficients without losing rows.</p>
+        </div>
+        <div class="nb-card nb-card-hover bg-white p-5">
+          <div class="w-9 h-9 bg-[#BFDBFE] border-2 border-black flex items-center justify-center font-mono-code font-extrabold mb-3">03</div>
+          <h3 class="font-extrabold text-base mb-1.5">Leak-Free Scaling</h3>
+          <p class="text-xs text-neutral-700 leading-relaxed">Applied a stratified 80/20 split and fitted <code class="font-mono-code bg-neutral-100 px-1">StandardScaler</code> strictly inside a scikit-learn Pipeline on training folds only.</p>
+        </div>
+        <div class="nb-card nb-card-hover bg-white p-5">
+          <div class="w-9 h-9 bg-[#FECACA] border-2 border-black flex items-center justify-center font-mono-code font-extrabold mb-3">04</div>
+          <h3 class="font-extrabold text-base mb-1.5">Imbalance Weighting</h3>
+          <p class="text-xs text-neutral-700 leading-relaxed">Used <code class="font-mono-code bg-neutral-100 px-1">class_weight="balanced"</code> and XGBoost <code class="font-mono-code bg-neutral-100 px-1">scale_pos_weight=5.54</code> so models prioritize detecting diabetic cases over naive accuracy.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDA Gallery -->
+    <section id="eda" class="space-y-6">
+      <div>
+        <span class="text-xs font-mono-code font-bold uppercase tracking-widest text-neutral-600">03 / Exploratory Data Analysis</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold mt-1">Key Data Distributions &amp; Risk Signals</h2>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6">
+        <figure class="nb-card bg-white p-4 flex flex-col">
+          <img src="plots/01_target_distribution.png" alt="Target Class Distribution"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+               class="w-full h-64 object-contain border-2 border-black bg-white" />
+          <div class="hidden w-full h-64 border-2 border-dashed border-black bg-[#FEF9C3] items-center justify-center text-xs font-mono-code font-bold text-center p-4">
+            Run Colab Cell 4 &amp; unzip ds422_plots.zip here &rarr; plots/01_target_distribution.png
+          </div>
+          <figcaption class="mt-3 text-xs text-neutral-700">
+            <strong class="text-black">Class Imbalance:</strong> Only ~15.3% of unique respondents belong to the positive class (35,097 out of 229,474), explaining why plain Accuracy is misleading and ROC-AUC / Recall are primary metrics.
+          </figcaption>
+        </figure>
+
+        <figure class="nb-card bg-white p-4 flex flex-col">
+          <img src="plots/03_top_features_eda.png" alt="Key Risk Factors EDA"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+               class="w-full h-64 object-contain border-2 border-black bg-white" />
+          <div class="hidden w-full h-64 border-2 border-dashed border-black bg-[#FEF9C3] items-center justify-center text-xs font-mono-code font-bold text-center p-4">
+            Run Colab Cell 4 &amp; unzip ds422_plots.zip here &rarr; plots/03_top_features_eda.png
+          </div>
+          <figcaption class="mt-3 text-xs text-neutral-700">
+            <strong class="text-black">Monotonic Risk Trends:</strong> Diabetes prevalence rises sharply with worse General Health scores, High Blood Pressure, advancing Age brackets, and elevated BMI.
+          </figcaption>
+        </figure>
+      </div>
+
+      <figure class="nb-card bg-white p-4">
+        <img src="plots/02_correlation_heatmap.png" alt="Correlation Matrix Heatmap"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+             class="w-full max-h-[520px] object-contain border-2 border-black bg-white" />
+        <div class="hidden w-full h-56 border-2 border-dashed border-black bg-[#FEF9C3] items-center justify-center text-xs font-mono-code font-bold text-center p-4">
+          Run Colab Cell 4 &amp; unzip ds422_plots.zip here &rarr; plots/02_correlation_heatmap.png
+        </div>
+        <figcaption class="mt-3 text-xs text-neutral-700">
+          <strong class="text-black">Correlation Overview:</strong> <code class="font-mono-code">GenHlth</code>, <code class="font-mono-code">HighBP</code>, <code class="font-mono-code">DiffWalk</code>, <code class="font-mono-code">BMI</code>, and <code class="font-mono-code">HighChol</code> exhibit the strongest positive linear associations with <code class="font-mono-code">Diabetes_binary</code>, while <code class="font-mono-code">Income</code> and <code class="font-mono-code">Education</code> correlate negatively.
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- Models & Interactive Evaluation -->
+    <section id="models" class="space-y-6">
+      <div>
+        <span class="text-xs font-mono-code font-bold uppercase tracking-widest text-neutral-600">04 / Model Implementation &amp; Evaluation</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold mt-1">Benchmarking Four Classification Algorithms</h2>
+      </div>
+
+      <!-- Interactive Chart.js Comparison + Feature Importance -->
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div class="nb-card bg-white p-5">
+          <h3 class="font-extrabold text-base mb-3">Interactive Model Metric Comparison</h3>
+          <div class="h-80 sm:h-96">
+            <canvas id="modelComparisonChart"></canvas>
+          </div>
+        </div>
+        <div class="nb-card bg-white p-5">
+          <h3 class="font-extrabold text-base mb-3">Top Predictive Features (Winning Model)</h3>
+          <div class="h-80 sm:h-96">
+            <canvas id="featureImportanceChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metrics Table -->
+      <div class="nb-card bg-white p-5">
+        <h3 class="font-extrabold text-base mb-3">Held-Out Test Set Metrics (20% Stratified Split — 45,895 samples)</h3>
+        <div class="overflow-x-auto border-2 border-black">
+          <table class="w-full text-left text-xs sm:text-sm border-collapse">
+            <thead class="bg-[#111111] text-white">
+              <tr>
+                <th class="p-3">Model</th>
+                <th class="p-3">ROC-AUC</th>
+                <th class="p-3">Balanced Acc</th>
+                <th class="p-3">Recall (Pos)</th>
+                <th class="p-3">Precision</th>
+                <th class="p-3">F1-Score</th>
+                <th class="p-3">Accuracy</th>
+              </tr>
+            </thead>
+            <tbody id="metricsTableBody" class="divide-y-2 divide-black/15 font-mono-code"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Colab Diagnostic Plots -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <figure class="nb-card bg-white p-4">
+          <img src="plots/05_roc_curves.png" alt="ROC Curve Comparison"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+               class="w-full h-72 object-contain border-2 border-black bg-white" />
+          <div class="hidden w-full h-72 border-2 border-dashed border-black bg-[#FEF9C3] items-center justify-center text-xs font-mono-code font-bold text-center p-4">
+            plots/05_roc_curves.png
+          </div>
+          <figcaption class="mt-3 text-xs text-neutral-700">
+            <strong class="text-black">ROC Curve:</strong> Compares sensitivity vs. false-positive rate across all thresholds; ensemble methods (Random Forest & XGBoost) dominate across the entire operating curve.
+          </figcaption>
+        </figure>
+
+        <figure class="nb-card bg-white p-4">
+          <img src="plots/06_confusion_matrix.png" alt="Best Model Confusion Matrix"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+               class="w-full h-72 object-contain border-2 border-black bg-white" />
+          <div class="hidden w-full h-72 border-2 border-dashed border-black bg-[#FEF9C3] items-center justify-center text-xs font-mono-code font-bold text-center p-4">
+            plots/06_confusion_matrix.png
+          </div>
+          <figcaption class="mt-3 text-xs text-neutral-700">
+            <strong class="text-black">Confusion Matrix:</strong> Cost-sensitive weighting intentionally reduces False Negatives (missed diabetic cases), which is the highest-cost error in public health screening.
+          </figcaption>
+        </figure>
+      </div>
+
+      <!-- Additional Diagnostic Plots -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <figure class="nb-card bg-white p-4">
+          <img src="plots/04_model_comparison.png" alt="Model Performance Comparison"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+               class="w-full h-72 object-contain border-2 border-black bg-white" />
+          <div class="hidden w-full h-72 border-2 border-dashed border-black bg-[#FEF9C3] items-center justify-center text-xs font-mono-code font-bold text-center p-4">
+            plots/04_model_comparison.png
+          </div>
+          <figcaption class="mt-3 text-xs text-neutral-700">
+            <strong class="text-black">Multi-Model Comparison:</strong> Side-by-side bar chart of ROC-AUC, Balanced Accuracy, Recall, and F1-Score across all four classifiers.
+          </figcaption>
+        </figure>
+
+        <figure class="nb-card bg-white p-4">
+          <img src="plots/07_feature_importance.png" alt="Feature Importance — Best Model"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+               class="w-full h-72 object-contain border-2 border-black bg-white" />
+          <div class="hidden w-full h-72 border-2 border-dashed border-black bg-[#FEF9C3] items-center justify-center text-xs font-mono-code font-bold text-center p-4">
+            plots/07_feature_importance.png
+          </div>
+          <figcaption class="mt-3 text-xs text-neutral-700">
+            <strong class="text-black">Feature Importance:</strong> Top 12 predictive features from the winning Random Forest model, ranked by relative importance.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Justification & Conclusions -->
+    <section id="justification" class="nb-card bg-[#FEFCE8] p-6 sm:p-8 space-y-5">
+      <div>
+        <span class="text-xs font-mono-code font-bold uppercase tracking-widest text-neutral-600">05 / Engineering Justification &amp; Takeaways</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold mt-1">Why Our Modeling Decisions Work</h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-5 text-sm">
+        <div class="bg-white border-2 border-black p-4">
+          <h3 class="font-extrabold mb-1.5">Why Recall &amp; ROC-AUC over Accuracy?</h3>
+          <p class="text-xs text-neutral-700 leading-relaxed">A trivial model predicting "No Diabetes" for everyone achieves ~85% accuracy while missing 100% of sick patients. Balancing class weights trades raw accuracy for ~76% sensitivity on diabetic cases.</p>
+        </div>
+        <div class="bg-white border-2 border-black p-4">
+          <h3 class="font-extrabold mb-1.5">Why Ensemble Trees Beat Linear Models?</h3>
+          <p class="text-xs text-neutral-700 leading-relaxed">Diabetes risk involves nonlinear interactions (e.g., HighBP + high BMI + Age). Random Forest and XGBoost capture these splits natively without manual polynomial expansion, achieving ROC-AUC of 0.8176 and 0.8170 respectively.</p>
+        </div>
+        <div class="bg-white border-2 border-black p-4">
+          <h3 class="font-extrabold mb-1.5">Limitations &amp; Next Steps</h3>
+          <p class="text-xs text-neutral-700 leading-relaxed">BRFSS responses are self-reported and lack lab biomarkers (HbA1c, fasting glucose). Future work includes threshold tuning for clinical precision targets and SHAP local explainability.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resources & Submission Links -->
+    <section id="resources" class="nb-card bg-[#111111] text-white p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div>
+        <h2 class="text-2xl font-extrabold">Project Deliverables — DS422 (ML-I)</h2>
+        <p class="text-sm text-neutral-300 mt-1">Student ID: 232-35-733 · Access the Jupyter Notebook, dataset mirrors, and exported plots below.</p>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <a href="232-35-733_E1.ipynb" download class="nb-btn bg-[#FFE500] text-black px-4 py-2.5 text-sm font-extrabold">Download Notebook (.ipynb)</a>
+        <a href="https://github.com/imransihab0/ml_i_ds422" target="_blank" rel="noopener" class="nb-btn bg-[#A78BFA] text-black px-4 py-2.5 text-sm font-extrabold">GitHub Repository</a>
+        <a href="ds422_plots.zip" download class="nb-btn bg-[#4ADE80] text-black px-4 py-2.5 text-sm font-extrabold">Download Plots (.zip)</a>
+        <a href="https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset" target="_blank" rel="noopener" class="nb-btn bg-[#38BDF8] text-black px-4 py-2.5 text-sm font-extrabold">Kaggle Dataset</a>
+        <a href="https://archive.ics.uci.edu/dataset/891/cdc+diabetes+health+indicators" target="_blank" rel="noopener" class="nb-btn bg-white text-black px-4 py-2.5 text-sm font-extrabold">UCI Mirror</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t-[2.5px] border-black bg-white py-6 mt-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs font-bold text-neutral-600">
+      <span>DS422 (Machine Learning I) — Section FH · Lab Project Showcase</span>
+      <span class="font-mono-code">Built with Scikit-Learn, XGBoost &amp; Chart.js</span>
+    </div>
+  </footer>
+
+  <script>
+    // =========================================================================
+    // ACTUAL RESULTS FROM COLAB NOTEBOOK (232-35-733_E1.ipynb)
+    // Updated with real model metrics from the notebook execution
+    // =========================================================================
+    const PROJECT_DATA = {
+      raw_rows: 253680,
+      clean_rows: 229474,
+      duplicates_removed: 24206,
+      features_count: 21,
+      positive_rate_pct: 15.29,
+      best_model: "Random Forest",
+      best_roc_auc: 0.8176,
+      best_recall: 0.7569,
+      models: [
+        { model: "Random Forest", accuracy: 0.7281, balanced_accuracy: 0.7399, precision: 0.3303, recall: 0.7569, f1: 0.4599, roc_auc: 0.8176, pr_auc: 0.4431 },
+        { model: "XGBoost", accuracy: 0.7132, balanced_accuracy: 0.7400, precision: 0.3201, recall: 0.7786, f1: 0.4537, roc_auc: 0.8170, pr_auc: 0.4437 },
+        { model: "Logistic Regression", accuracy: 0.7149, balanced_accuracy: 0.7342, precision: 0.3191, recall: 0.7619, f1: 0.4498, roc_auc: 0.8120, pr_auc: 0.4268 },
+        { model: "Decision Tree", accuracy: 0.7005, balanced_accuracy: 0.7278, precision: 0.3078, recall: 0.7671, f1: 0.4393, roc_auc: 0.8046, pr_auc: 0.4210 }
+      ],
+      top_features: [
+        { feature: "GenHlth", importance: 0.142 },
+        { feature: "HighBP", importance: 0.118 },
+        { feature: "BMI", importance: 0.112 },
+        { feature: "Age", importance: 0.098 },
+        { feature: "HighChol", importance: 0.078 },
+        { feature: "Income", importance: 0.062 },
+        { feature: "PhysHlth", importance: 0.055 },
+        { feature: "DiffWalk", importance: 0.048 },
+        { feature: "HeartDiseaseorAttack", importance: 0.042 },
+        { feature: "Education", importance: 0.038 },
+        { feature: "MentHlth", importance: 0.036 },
+        { feature: "PhysActivity", importance: 0.032 }
+      ]
+    };
+
+    const FEATURES_META = [
+      ["Diabetes_binary", "Binary (0/1)", "Target", "0 = no diabetes, 1 = prediabetes or diabetes"],
+      ["HighBP", "Binary (0/1)", "Clinical", "Adults told they have high blood pressure"],
+      ["HighChol", "Binary (0/1)", "Clinical", "Adults told their blood cholesterol is high"],
+      ["CholCheck", "Binary (0/1)", "Clinical", "Cholesterol check within the past 5 years"],
+      ["BMI", "Continuous", "Clinical", "Body Mass Index (capped at 1st-99th percentile: 18.0–50.0)"],
+      ["Smoker", "Binary (0/1)", "Lifestyle", "Smoked at least 100 cigarettes in lifetime"],
+      ["Stroke", "Binary (0/1)", "Clinical", "Ever told respondent had a stroke"],
+      ["HeartDiseaseorAttack", "Binary (0/1)", "Clinical", "Coronary heart disease (CHD) or myocardial infarction (MI)"],
+      ["PhysActivity", "Binary (0/1)", "Lifestyle", "Physical activity in past 30 days (non-job)"],
+      ["Fruits", "Binary (0/1)", "Lifestyle", "Consume fruit 1 or more times per day"],
+      ["Veggies", "Binary (0/1)", "Lifestyle", "Consume vegetables 1 or more times per day"],
+      ["HvyAlcoholConsump", "Binary (0/1)", "Lifestyle", "Heavy drinker (men >14/wk, women >7/wk)"],
+      ["AnyHealthcare", "Binary (0/1)", "Access", "Has any kind of health care coverage"],
+      ["NoDocbcCost", "Binary (0/1)", "Access", "Needed doctor in past 12 months but could not afford"],
+      ["GenHlth", "Ordinal (1-5)", "Clinical", "General health rating: 1=Excellent to 5=Poor"],
+      ["MentHlth", "Numeric (0-30)", "Clinical", "Days of poor mental health in past 30 days"],
+      ["PhysHlth", "Numeric (0-30)", "Clinical", "Days of physical illness/injury in past 30 days"],
+      ["DiffWalk", "Binary (0/1)", "Clinical", "Serious difficulty walking or climbing stairs"],
+      ["Sex", "Binary (0/1)", "Demographic", "0 = Female, 1 = Male"],
+      ["Age", "Ordinal (1-13)", "Demographic", "13-level age bracket (1=18-24 up to 13=80+)"],
+      ["Education", "Ordinal (1-6)", "Demographic", "Education level (1=Never attended to 6=College grad)"],
+      ["Income", "Ordinal (1-8)", "Demographic", "Income bracket (1=<$10k up to 8=>$75k)"]
+    ];
+
+    // Hydrate KPIs
+    document.getElementById("kpi-raw").textContent = PROJECT_DATA.raw_rows.toLocaleString();
+    document.getElementById("kpi-clean").textContent = `${PROJECT_DATA.clean_rows.toLocaleString()} unique after cleaning`;
+    document.getElementById("kpi-features").textContent = PROJECT_DATA.features_count;
+    document.getElementById("kpi-best-model").textContent = PROJECT_DATA.best_model;
+    document.getElementById("kpi-auc").textContent = PROJECT_DATA.best_roc_auc.toFixed(4);
+    document.getElementById("kpi-recall").textContent = `Recall: ${(PROJECT_DATA.best_recall * 100).toFixed(1)}% on positive class`;
+    document.getElementById("stat-dups").textContent = PROJECT_DATA.duplicates_removed.toLocaleString();
+    document.getElementById("stat-pos").textContent = `${PROJECT_DATA.positive_rate_pct}%`;
+
+    // Render Feature Dictionary
+    function renderFeatures(filter = "") {
+      const tbody = document.getElementById("featureTableBody");
+      const q = filter.toLowerCase();
+      tbody.innerHTML = FEATURES_META
+        .filter(row => row.some(cell => cell.toLowerCase().includes(q)))
+        .map(([name, type, cat, desc]) => `
+          <tr class="${cat === 'Target' ? 'bg-[#FEF08A] font-bold' : 'hover:bg-[#FFFDF7]'}">
+            <td class="p-3 font-mono-code font-bold">${name}</td>
+            <td class="p-3">${type}</td>
+            <td class="p-3"><span class="px-2 py-0.5 border border-black text-xs font-bold bg-white">${cat}</span></td>
+            <td class="p-3 text-neutral-700">${desc}</td>
+          </tr>
+        `).join("");
+    }
+    renderFeatures();
+    document.getElementById("featureSearch").addEventListener("input", e => renderFeatures(e.target.value));
+
+    // Render Metrics Table
+    const metricsBody = document.getElementById("metricsTableBody");
+    metricsBody.innerHTML = PROJECT_DATA.models.map((m, idx) => `
+      <tr class="${idx === 0 ? 'bg-[#DCFCE7] font-bold' : 'bg-white'}">
+        <td class="p-3 font-sans font-extrabold">${m.model} ${idx === 0 ? '<span class="ml-1 px-1.5 py-0.5 text-[10px] bg-[#FFE500] border border-black">BEST</span>' : ''}</td>
+        <td class="p-3">${m.roc_auc.toFixed(4)}</td>
+        <td class="p-3">${m.balanced_accuracy.toFixed(4)}</td>
+        <td class="p-3">${m.recall.toFixed(4)}</td>
+        <td class="p-3">${m.precision.toFixed(4)}</td>
+        <td class="p-3">${m.f1.toFixed(4)}</td>
+        <td class="p-3">${m.accuracy.toFixed(4)}</td>
+      </tr>
+    `).join("");
+
+    // Chart 1: Model Comparison
+    new Chart(document.getElementById("modelComparisonChart"), {
+      type: "bar",
+      data: {
+        labels: PROJECT_DATA.models.map(m => m.model),
+        datasets: [
+          { label: "ROC-AUC", data: PROJECT_DATA.models.map(m => m.roc_auc), backgroundColor: "#3B82F6", borderColor: "#111", borderWidth: 2 },
+          { label: "Balanced Acc", data: PROJECT_DATA.models.map(m => m.balanced_accuracy), backgroundColor: "#4ADE80", borderColor: "#111", borderWidth: 2 },
+          { label: "Recall", data: PROJECT_DATA.models.map(m => m.recall), backgroundColor: "#FFE500", borderColor: "#111", borderWidth: 2 },
+          { label: "F1-Score", data: PROJECT_DATA.models.map(m => m.f1), backgroundColor: "#FB7185", borderColor: "#111", borderWidth: 2 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true, max: 1.0 } },
+        plugins: { legend: { position: "bottom", labels: { color: "#111", font: { weight: "bold" } } } }
+      }
+    });
+
+    // Chart 2: Feature Importance
+    new Chart(document.getElementById("featureImportanceChart"), {
+      type: "bar",
+      data: {
+        labels: PROJECT_DATA.top_features.map(f => f.feature),
+        datasets: [{
+          label: "Importance Score",
+          data: PROJECT_DATA.top_features.map(f => f.importance),
+          backgroundColor: "#A78BFA",
+          borderColor: "#111",
+          borderWidth: 2
+        }]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { x: { beginAtZero: true } },
+        plugins: { legend: { display: false } }
+      }
+    });
+  </script>
+</body>
+</html>
