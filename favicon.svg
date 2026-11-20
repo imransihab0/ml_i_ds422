@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Neo-brutalist Background with offset shadow -->
+  <rect x="7" y="7" width="52" height="52" rx="14" fill="#111111" />
+  <rect x="4" y="4" width="52" height="52" rx="14" fill="#FFE500" stroke="#111111" stroke-width="3.5" />
+  
+  <!-- Stylized Blood / Health Drop -->
+  <path d="M30 13 C30 13 17 28 17 38 C17 46 22.8 51 30 51 C37.2 51 43 46 43 38 C43 28 30 13 30 13 Z" 
+        fill="#EF4444" stroke="#111111" stroke-width="3" stroke-linejoin="round" />
+  
+  <!-- Highlight reflection -->
+  <path d="M22 34 C21 36 21 38 22 40" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.75" />
+  
+  <!-- ECG / Pulse Line inside the drop -->
+  <path d="M21 40 H25 L27.5 33 L31 45 L34 36 L36 40 H39" 
+        fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
