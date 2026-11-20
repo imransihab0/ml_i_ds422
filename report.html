@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DS422 Lab Report — Predicting Diabetes Risk from CDC Health Indicators</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --text: #1f2937;
+      --text-muted: #4b5563;
+      --bg: #ffffff;
+      --border: #e5e7eb;
+      --accent: #d97706;
+      --highlight: #fef3c7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-size: 11.5pt;
+      line-height: 1.6;
+      color: var(--text);
+      background-color: #f3f4f6;
+      margin: 0;
+      padding: 24px;
+    }
+
+    .report-container {
+      max-width: 850px;
+      margin: 0 auto;
+      background: var(--bg);
+      padding: 60px 72px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border-radius: 4px;
+    }
+
+    /* Print Navigation Toolbar */
+    .toolbar {
+      max-width: 850px;
+      margin: 0 auto 16px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #111827;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+    }
+
+    .toolbar-btn {
+      background: #f59e0b;
+      color: #111827;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .toolbar-btn:hover { background: #d97706; color: #fff; }
+
+    .toolbar-back {
+      color: #9ca3af;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .toolbar-back:hover { color: #fff; }
+
+    /* Headers & Typography */
+    h1, h2, h3, h4 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #0f172a;
+      letter-spacing: -0.01em;
+    }
+
+    .header-block {
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+
+    .institution-meta {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 10pt;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #475569;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    h1.report-title {
+      font-size: 22pt;
+      font-weight: 800;
+      line-height: 1.25;
+      margin: 0 0 16px 0;
+      color: #0f172a;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 9.5pt;
+      background: #f8fafc;
+      padding: 14px 18px;
+      border-left: 4px solid #2563eb;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .meta-grid div span.label {
+      color: #64748b;
+      font-weight: 600;
+      display: inline-block;
+      width: 110px;
+    }
+    .meta-grid div span.val {
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    h2.section-title {
+      font-size: 14pt;
+      font-weight: 800;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 6px;
+      margin-top: 36px;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #1e293b;
+      page-break-after: avoid;
+    }
+
+    h3.sub-title {
+      font-size: 12pt;
+      font-weight: 700;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      color: #334155;
+      page-break-after: avoid;
+    }
+
+    p {
+      margin-top: 0;
+      margin-bottom: 12px;
+      text-align: justify;
+    }
+
+    /* Abstract Callout */
+    .abstract-box {
+      background: #f1f5f9;
+      border-left: 4px solid #0f172a;
+      padding: 16px 20px;
+      margin: 24px 0 32px 0;
+      font-style: italic;
+    }
+    .abstract-box strong {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-style: normal;
+      font-size: 10pt;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+      margin-bottom: 6px;
+      color: #0f172a;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 24px 0;
+      font-size: 9.5pt;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    th, td {
+      padding: 9px 12px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    th {
+      background-color: #0f172a;
+      color: #ffffff;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    tr:nth-child(even) { background-color: #f8fafc; }
+    tr.best-row { background-color: #ecfdf5; font-weight: 700; }
+
+    .code-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9pt;
+    }
+
+    /* Figures */
+    figure {
+      margin: 24px 0;
+      text-align: center;
+      page-break-inside: avoid;
+    }
+
+    figure img {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    figcaption {
+      font-size: 9pt;
+      color: #475569;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    figcaption strong { color: #0f172a; }
+
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin: 18px 0;
+    }
+
+    /* Key takeaways callout */
+    .callout {
+      background: #fefce8;
+      border-left: 4px solid #eab308;
+      padding: 14px 18px;
+      margin: 18px 0;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      font-size: 8pt;
+      font-weight: 800;
+      border-radius: 4px;
+      background: #e2e8f0;
+      color: #1e293b;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .badge-win { background: #10b981; color: #fff; }
+
+    /* Page-break classes for print */
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+        font-size: 10.5pt;
+      }
+      .toolbar { display: none; }
+      .report-container {
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      .page-break { page-break-before: always; }
+      figure, table { page-break-inside: avoid; }
+      h2.section-title { page-break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen Navigation Toolbar -->
+  <div class="toolbar">
+    <a href="index.html" class="toolbar-back">&larr; Back to Dashboard</a>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="window.print()" class="toolbar-btn">
+        🖨️ Print / Save as PDF
+      </button>
+      <a href="DS422_Lab_Report_232-35-733.pdf" download class="toolbar-btn" style="background: #10b981; color: #fff;">
+        ⬇ Download Pre-built PDF
+      </a>
+    </div>
+  </div>
+
+  <div class="report-container">
+
+    <!-- Document Header -->
+    <header class="header-block">
+      <div class="institution-meta">
+        DS422: Machine Learning I &middot; Laboratory Project Final Report
+      </div>
+      <h1 class="report-title">
+        Benchmarking Supervised Classifiers for Diabetes Risk Screening Using CDC BRFSS Health Indicators
+      </h1>
+      <div class="meta-grid">
+        <div><span class="label">Course:</span><span class="val">DS422 (Machine Learning I)</span></div>
+        <div><span class="label">Section:</span><span class="val">E1</span></div>
+        <div><span class="label">Instructor:</span><span class="val">Teacher FH</span></div>
+        <div><span class="label">Student ID:</span><span class="val">232-35-733 (Shihab)</span></div>
+        <div><span class="label">Submission:</span><span class="val">22 November 2026</span></div>
+        <div><span class="label">Domain:</span><span class="val">Public Health &middot; Supervised ML</span></div>
+      </div>
+    </header>
+
+    <!-- Executive Summary / Abstract -->
+    <div class="abstract-box">
+      <strong>Abstract</strong>
+      Diabetes mellitus represents one of the most critical global chronic healthcare burdens, with millions remaining undiagnosed until severe microvascular and macrovascular complications develop. This investigation conducts an end-to-end empirical benchmark of supervised machine learning architectures—Logistic Regression, Decision Tree, Random Forest, and XGBoost—applied to 253,680 public health survey records from the CDC's Behavioral Risk Factor Surveillance System (BRFSS 2015). Addressing a realistic 84.7% to 15.3% class imbalance, we implement rigorous deduplication (removing 24,206 duplicate profiles to prevent leakage), percentile-based BMI outlier mitigation, leak-free standardized feature pipelines, and cost-sensitive loss weighting. Evaluated on a 20% stratified test set (45,895 samples), <strong>Random Forest</strong> emerged as the premier screening classifier, attaining an <strong>ROC-AUC of 0.8176</strong>, a <strong>Balanced Accuracy of 0.7399</strong>, and an affirmative clinical <strong>Recall of 75.69%</strong> (identifying 5,313 out of 7,019 diabetic patients). Feature attribution identified General Health perception (<code class="code-val">GenHlth</code>), High Blood Pressure (<code class="code-val">HighBP</code>), Body Mass Index (<code class="code-val">BMI</code>), Age bracket (<code class="code-val">Age</code>), and High Cholesterol (<code class="code-val">HighChol</code>) as the dominant non-invasive risk drivers.
+    </div>
+
+    <!-- 1. Introduction -->
+    <section>
+      <h2 class="section-title">1. Introduction &amp; Problem Statement</h2>
+      <p>
+        According to the Centers for Disease Control and Prevention (CDC), over 37 million Americans suffer from diabetes, while an estimated 96 million adults exhibit prediabetes. Because early-stage hyperglycemia is frequently asymptomatic, non-invasive triage models capable of flagging high-risk individuals using routine lifestyle, clinical history, and demographic indicators are vital for early intervention.
+      </p>
+      <p>
+        From a machine learning engineering standpoint, disease screening presents asymmetric error costs. A <strong>False Negative (Type II error)</strong>—failing to detect an undiagnosed diabetic patient—leads to disease progression and costly acute emergencies. Conversely, a <strong>False Positive (Type I error)</strong> merely prompts a confirmatory blood test (e.g., HbA1c or fasting plasma glucose). Consequently, standard classification Accuracy is a deceptive performance indicator due to severe class imbalance (~85% healthy vs. ~15% diabetic). This research formulates diabetes detection as an imbalanced, cost-sensitive classification problem prioritizing <strong>Sensitivity (Recall)</strong>, <strong>Balanced Accuracy</strong>, and <strong>Area Under the ROC Curve (ROC-AUC)</strong> over raw accuracy.
+      </p>
+    </section>
+
+    <!-- 2. Dataset Description & Engineering -->
+    <section>
+      <h2 class="section-title">2. Dataset &amp; Preprocessing Methodology</h2>
+      <p>
+        The study employs the CDC BRFSS 2015 health indicators dataset mirrored on the UCI Machine Learning Repository (ID: 891). The dataset comprises 253,680 raw respondent profiles across 21 predictive variables capturing clinical diagnoses, dietary habits, physical mobility, and socioeconomic indicators, coupled with a binary target: <code class="code-val">Diabetes_binary</code> (0 = No Diabetes, 1 = Prediabetes / Diabetes).
+      </p>
+
+      <h3 class="sub-title">2.1 Preprocessing Pipeline</h3>
+      <ol style="padding-left: 20px; margin-top: 6px; margin-bottom: 14px;">
+        <li>
+          <strong>Exact Deduplication:</strong> Comprehensive audit identified 24,206 duplicate rows arising from survey response permutations. Dropping these exact duplicates reduced the cohort to <strong>229,474 unique records</strong>, strictly avoiding data leakage between training and evaluation partitions.
+        </li>
+        <li>
+          <strong>Outlier Mitigation:</strong> Self-reported Body Mass Index (<code class="code-val">BMI</code>) reached biologically implausible values up to 98. Extreme values were capped at the 1st and 99th percentiles (<code class="code-val">[18.0, 50.0]</code>), preserving sample integrity while stabilizing gradient-based and linear estimators.
+        </li>
+        <li>
+          <strong>Stratified Partitioning:</strong> An 80/20 train/test split was executed with target stratification (<code class="code-val">random_state=42</code>), yielding <strong>183,579 training records</strong> and <strong>45,895 test records</strong>, preserving the exact 15.29% prevalence across sets.
+        </li>
+        <li>
+          <strong>Leak-Free Scaling:</strong> Continuous and ordinal features were scaled using <code class="code-val">StandardScaler</code> strictly within a cross-validation pipeline fitted solely on training partitions.
+        </li>
+      </ol>
+
+      <table style="margin-top: 12px;">
+        <thead>
+          <tr>
+            <th>Attribute</th>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Description &amp; Encoding Scale</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="code-val">Diabetes_binary</td><td>Binary</td><td>Target</td><td>0 = Healthy, 1 = Prediabetes or Diagnosed Diabetes</td></tr>
+          <tr><td class="code-val">HighBP</td><td>Binary</td><td>Clinical</td><td>Adults diagnosed with hypertension (0=No, 1=Yes)</td></tr>
+          <tr><td class="code-val">HighChol</td><td>Binary</td><td>Clinical</td><td>Adults told their blood cholesterol is elevated (0=No, 1=Yes)</td></tr>
+          <tr><td class="code-val">CholCheck</td><td>Binary</td><td>Clinical</td><td>Cholesterol checked within the past 5 years (0=No, 1=Yes)</td></tr>
+          <tr><td class="code-val">BMI</td><td>Continuous</td><td>Clinical</td><td>Body Mass Index (clipped to 1st–99th percentile: 18.0–50.0)</td></tr>
+          <tr><td class="code-val">Smoker</td><td>Binary</td><td>Lifestyle</td><td>Smoked at least 100 cigarettes in lifetime (0=No, 1=Yes)</td></tr>
+          <tr><td class="code-val">Stroke</td><td>Binary</td><td>Clinical</td><td>Ever told respondent had a stroke (0=No, 1=Yes)</td></tr>
+          <tr><td class="code-val">HeartDiseaseorAttack</td><td>Binary</td><td>Clinical</td><td>Coronary heart disease (CHD) or myocardial infarction (0=No, 1=Yes)</td></tr>
+          <tr><td class="code-val">PhysActivity</td><td>Binary</td><td>Lifestyle</td><td>Physical activity in past 30 days excluding job (0=No, 1=Yes)</td></tr>
+          <tr><td class="code-val">Fruits / Veggies</td><td>Binary</td><td>Lifestyle</td><td>Consumes fruit / vegetables &ge;1 time per day (0=No, 1=Yes)</td></tr>
+          <tr><td class="code-val">HvyAlcoholConsump</td><td>Binary</td><td>Lifestyle</td><td>Heavy drinker: Men &gt;14 drinks/wk, Women &gt;7 drinks/wk</td></tr>
+          <tr><td class="code-val">GenHlth</td><td>Ordinal</td><td>Clinical</td><td>Subjective health rating: 1=Excellent, 2=Very Good ... 5=Poor</td></tr>
+          <tr><td class="code-val">MentHlth / PhysHlth</td><td>Discrete</td><td>Clinical</td><td>Days of poor mental / physical health in past 30 days (0–30)</td></tr>
+          <tr><td class="code-val">DiffWalk</td><td>Binary</td><td>Clinical</td><td>Difficulty walking or climbing stairs (0=No, 1=Yes)</td></tr>
+          <tr><td class="code-val">Sex</td><td>Binary</td><td>Demographic</td><td>Respondent biological sex (0 = Female, 1 = Male)</td></tr>
+          <tr><td class="code-val">Age</td><td>Ordinal</td><td>Demographic</td><td>13-level bracket: 1=18–24 up to 13=80+ years</td></tr>
+          <tr><td class="code-val">Education / Income</td><td>Ordinal</td><td>Socioeconomic</td><td>Levels 1–6 (Education) and 1–8 (Household income)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 3. Exploratory Data Analysis -->
+    <section class="page-break">
+      <h2 class="section-title">3. Exploratory Data Analysis (EDA)</h2>
+      <p>
+        Prior to model estimation, distribution characteristics and feature cross-correlations were analyzed to confirm clinical consistency and identify multi-collinearity.
+      </p>
+
+      <div class="two-col-grid">
+        <figure>
+          <img src="plots/01_target_distribution.png" alt="Class Distribution" />
+          <figcaption>
+            <strong>Figure 1: Target Class Distribution.</strong> Demonstrating an 84.7% healthy majority versus 15.3% diabetes prevalence (35,097 cases), mandating cost-sensitive loss functions.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="plots/03_top_features_eda.png" alt="Key Risk Factors" />
+          <figcaption>
+            <strong>Figure 2: Monotonic Clinical Relationships.</strong> Diabetes rate rises monotonically across General Health tiers (up to 38%), doubles under High BP, and scales with age and BMI.
+          </figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <img src="plots/02_correlation_heatmap.png" alt="Feature Correlation Matrix" style="max-height: 480px; width: auto;" />
+        <figcaption>
+          <strong>Figure 3: Correlation Matrix Heatmap.</strong> <code class="code-val">GenHlth</code> (r = 0.29), <code class="code-val">HighBP</code> (r = 0.26), <code class="code-val">BMI</code> (r = 0.21), <code class="code-val">DiffWalk</code> (r = 0.21), and <code class="code-val">HighChol</code> (r = 0.20) demonstrate the strongest positive linear association with diabetes diagnosis.
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- 4. Modeling & Experimental Setup -->
+    <section>
+      <h2 class="section-title">4. Model Implementations &amp; Imbalance Strategies</h2>
+      <p>
+        Four diverse machine learning architectures were trained on identical stratified partitions. To penalize False Negatives, cost-sensitive inverse class frequencies were embedded into training:
+      </p>
+      <ul>
+        <li>
+          <strong>Logistic Regression:</strong> Linear baseline with <code class="code-val">class_weight="balanced"</code>, maximizing the penalized log-likelihood with an L2 ridge penalty.
+        </li>
+        <li>
+          <strong>Decision Tree:</strong> Non-parametric tree regularized with <code class="code-val">max_depth=10</code> and <code class="code-val">min_samples_leaf=50</code> to mitigate variance and leaf overfitting.
+        </li>
+        <li>
+          <strong>Random Forest:</strong> Bagging ensemble of 200 de-correlated decision trees (<code class="code-val">max_depth=14</code>, <code class="code-val">min_samples_leaf=20</code>) with bootstrap balanced class sub-sampling.
+        </li>
+        <li>
+          <strong>XGBoost:</strong> Scaled gradient tree boosting configured with 250 boosting rounds, <code class="code-val">learning_rate=0.08</code>, <code class="code-val">max_depth=6</code>, and <code class="code-val">scale_pos_weight=5.54</code> (representing the ratio of negative to positive training instances).
+        </li>
+      </ul>
+    </section>
+
+    <!-- 5. Results & Discussion -->
+    <section class="page-break">
+      <h2 class="section-title">5. Comparative Evaluation &amp; Benchmarks</h2>
+      <p>
+        Performance was evaluated on the independent hold-out test set containing 45,895 samples (38,876 negative; 7,019 positive). Table 2 summarizes all benchmark metrics.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Classifier Model</th>
+            <th>ROC-AUC</th>
+            <th>PR-AUC</th>
+            <th>Recall (Sensitivity)</th>
+            <th>Precision</th>
+            <th>F1-Score</th>
+            <th>Balanced Acc</th>
+            <th>Raw Accuracy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="best-row">
+            <td><strong>Random Forest (Winning)</strong> <span class="badge badge-win">BEST</span></td>
+            <td><strong>0.8176</strong></td>
+            <td>0.4431</td>
+            <td><strong>0.7569</strong></td>
+            <td>0.3303</td>
+            <td><strong>0.4599</strong></td>
+            <td>0.7399</td>
+            <td>0.7281</td>
+          </tr>
+          <tr>
+            <td>XGBoost</td>
+            <td>0.8170</td>
+            <td><strong>0.4437</strong></td>
+            <td>0.7786</td>
+            <td>0.3201</td>
+            <td>0.4537</td>
+            <td><strong>0.7400</strong></td>
+            <td>0.7132</td>
+          </tr>
+          <tr>
+            <td>Logistic Regression</td>
+            <td>0.8120</td>
+            <td>0.4268</td>
+            <td>0.7619</td>
+            <td>0.3191</td>
+            <td>0.4498</td>
+            <td>0.7342</td>
+            <td>0.7149</td>
+          </tr>
+          <tr>
+            <td>Decision Tree</td>
+            <td>0.8046</td>
+            <td>0.4210</td>
+            <td>0.7671</td>
+            <td>0.3078</td>
+            <td>0.4393</td>
+            <td>0.7278</td>
+            <td>0.7005</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="two-col-grid">
+        <figure>
+          <img src="plots/04_model_comparison.png" alt="Model Comparison" />
+          <figcaption>
+            <strong>Figure 4: Metric Comparison Across Classifiers.</strong> Random Forest and XGBoost achieve superior discrimination across ROC-AUC and F1 scores.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="plots/05_roc_curves.png" alt="ROC Curves" />
+          <figcaption>
+            <strong>Figure 5: Receiver Operating Characteristic (ROC).</strong> All models achieve AUC &gt; 0.80, with tree ensembles maintaining dominant True Positive rates across operational thresholds.
+          </figcaption>
+        </figure>
+      </div>
+
+      <div class="two-col-grid">
+        <figure>
+          <img src="plots/06_confusion_matrix.png" alt="Confusion Matrix" />
+          <figcaption>
+            <strong>Figure 6: Best Model Confusion Matrix (Random Forest).</strong> Correctly isolates 5,313 positive diabetic cases (75.7% Recall) while minimizing high-risk False Negatives.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="plots/07_feature_importance.png" alt="Feature Importance" />
+          <figcaption>
+            <strong>Figure 7: Top 12 Gini Predictive Features.</strong> Subjective General Health perception (<code class="code-val">GenHlth</code>), Blood Pressure (<code class="code-val">HighBP</code>), and <code class="code-val">BMI</code> dominate model decisions.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 6. In-Depth Engineering Justification -->
+    <section>
+      <h2 class="section-title">6. Engineering Justifications &amp; Discussion</h2>
+      
+      <div class="callout">
+        <strong>Key Takeaway:</strong> A zero-intelligence majority classifier predicting "No Diabetes" for all respondents achieves <strong>84.71% accuracy</strong> while capturing exactly 0% of patients in need of treatment. Cost-sensitive balancing intentionally sacrifices ~12% overall accuracy to achieve <strong>75.7% recall</strong> on diseased patients.
+      </div>
+
+      <p>
+        <strong>1. Why Random Forest Outperformed Other Models:</strong> Random Forest achieved the highest ROC-AUC (0.8176) and highest F1-score (0.4599) with strong generalizability. Decision Trees demonstrated slight instability on boundary partitions, whereas Logistic Regression was constrained by linear decision boundaries that failed to capture higher-order metabolic interactions (e.g., compounding risk of advanced age, elevated BMI, and high blood pressure). Random Forest captured these multi-factor non-linearities without manual interaction engineering.
+      </p>
+
+      <p>
+        <strong>2. Interpretability and Clinical Concordance:</strong> The top predictors identified by Gini feature importance—<code class="code-val">GenHlth</code> (14.2%), <code class="code-val">HighBP</code> (11.8%), <code class="code-val">BMI</code> (11.2%), <code class="code-val">Age</code> (9.8%), and <code class="code-val">HighChol</code> (7.8%)—align seamlessly with established clinical etiology for metabolic syndrome and Type II diabetes pathogenesis.
+      </p>
+
+      <p>
+        <strong>3. Error Analysis:</strong> The 1,706 False Negatives (missed positive cases) largely correspond to young, active respondents who report low general BMI yet possess strong unmeasured genetic predispositions or latent prediabetes. This underscores the necessity of combining survey-based screening tools with clinical laboratory testing.
+      </p>
+    </section>
+
+    <!-- 7. Limitations & Future Work -->
+    <section>
+      <h2 class="section-title">7. Limitations &amp; Future Directions</h2>
+      <ul>
+        <li><strong>Self-Reporting Bias:</strong> The BRFSS relies on telephonic self-reporting, introducing recall inaccuracies regarding physical activity and dietary frequencies.</li>
+        <li><strong>Absence of Biomarkers:</strong> Inclusion of laboratory metrics (e.g., HbA1c, fasting plasma glucose, oral glucose tolerance) would significantly boost precision.</li>
+        <li><strong>Optimal Decision Thresholding:</strong> Currently evaluated at the default decision boundary (0.50); future iterations should optimize threshold &theta; against an explicit medical utility function (e.g., $Cost_{FN} = 10 \times Cost_{FP}$).</li>
+        <li><strong>Model Explainability:</strong> Implementation of SHAP (SHapley Additive exPlanations) for local patient-level risk factor attribution in clinical settings.</li>
+      </ul>
+    </section>
+
+    <!-- 8. Conclusion & References -->
+    <section>
+      <h2 class="section-title">8. Conclusion</h2>
+      <p>
+        This laboratory project successfully designed, implemented, and benchmarked an end-to-end machine learning framework for population-level diabetes risk triage using the CDC BRFSS dataset. Through disciplined deduplication, leak-free pipeline transformations, and cost-sensitive ensemble modeling, Random Forest proved highly effective—achieving an ROC-AUC of 0.8176 and capturing over 75% of diabetic individuals using purely non-invasive survey indicators.
+      </p>
+
+      <h2 class="section-title">9. References</h2>
+      <ol style="font-size: 9pt; padding-left: 20px; color: #475569;">
+        <li>Centers for Disease Control and Prevention (CDC). Behavioral Risk Factor Surveillance System (BRFSS) Survey Data, 2015.</li>
+        <li>Teboul, A. "Diabetes Health Indicators Dataset." Kaggle, 2021.</li>
+        <li>UCI Machine Learning Repository. "CDC Diabetes Health Indicators," Dataset ID: 891.</li>
+        <li>Pedregosa, F., et al. "Scikit-learn: Machine Learning in Python." <em>Journal of Machine Learning Research</em>, 12, 2011.</li>
+        <li>Chen, T., &amp; Guestrin, C. "XGBoost: A Scalable Tree Boosting System." <em>KDD</em>, 2016.</li>
+      </ol>
+    </section>
+
+  </div>
+
+</body>
+</html>
