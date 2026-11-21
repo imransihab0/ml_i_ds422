@@ -263,6 +263,10 @@
     }
     .badge-win { background: #10b981; color: #fff; }
 
+    .thermal-gradient-bar {
+      background: linear-gradient(90deg, #1e3a8a 0%, #0284c7 16%, #06b6d4 30%, #10b981 44%, #facc15 62%, #f97316 80%, #ef4444 92%, #ec4899 100%);
+    }
+
     /* Page-break classes for print */
     @media print {
       body {
@@ -298,6 +302,8 @@
   </div>
 
   <div class="report-container">
+    <!-- Top Thermal Gradient Spectrum Accent -->
+    <div style="height: 5px; width: 100%; margin-bottom: 24px; border-radius: 2px;" class="thermal-gradient-bar"></div>
 
     <!-- Document Header -->
     <header class="header-block">
