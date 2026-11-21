@@ -1,11 +1,18 @@
-# DS422: Machine Learning I &mdash; Lab Project Report
+# DS422: Machine Learning Driven Data Analysis Lab I (DS Major) &mdash; Lab Final Report
+**Daffodil International University (DIU)**  
+**Department of Data Science**
 
 **Project Title:** Benchmarking Supervised Classifiers for Diabetes Risk Screening Using CDC BRFSS Health Indicators  
-**Course:** DS422 (Machine Learning I)  
+**Course Code:** DS422  
+**Course Title:** Machine Learning Driven Data Analysis Lab I (DS Major)  
+**Semester:** Fall 26  
 **Section:** E1  
-**Instructor:** Teacher FH  
-**Student ID:** 232-35-733 (Shihab)  
-**Submission Date:** 22 November 2026  
+**Batch:** 41  
+**Student Name:** Imranul Islam Shihab  
+**Student ID:** 232-35-733  
+**Course Teacher:** Md. Fahad Hossain  
+**Designation:** Lecturer (Senior Scale)  
+**Submission Date:** 22 Nov, 2026  
 **Live Showcase:** [https://mlids422.vercel.app](https://mlids422.vercel.app)  
 **Online Report:** [https://mlids422.vercel.app/report.html](https://mlids422.vercel.app/report.html)  
 **Direct PDF Download:** [https://mlids422.vercel.app/DS422_Lab_Report_232-35-733.pdf](https://mlids422.vercel.app/DS422_Lab_Report_232-35-733.pdf)
@@ -109,4 +116,4 @@ The top 12 predictive features identified by Gini importance in the Random Fores
 - **Future Work:** Clinical decision threshold optimization (&theta; tuning), integration with electronic health records (EHR), and SHAP local explainability.
 
 ---
-*Report generated for DS422: Machine Learning I &middot; Section E1 &middot; Faculty: FH &middot; Student ID: 232-35-733*
+*Report submitted for DS422: Machine Learning Driven Data Analysis Lab I (DS Major) &middot; Section E1 &middot; Batch 41 &middot; Daffodil International University &middot; Course Teacher: Md. Fahad Hossain, Lecturer (Senior Scale) &middot; Student: Imranul Islam Shihab (ID: 232-35-733)*
