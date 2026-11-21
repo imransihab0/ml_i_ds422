@@ -68,14 +68,15 @@
     .report-wrapper {
       max-width: 820px;
       margin: 0 auto;
-      background: #ffffff;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      background: transparent;
     }
 
     .report-page {
       padding: 50px 60px;
       background: #ffffff;
-      min-height: 1100px;
+      min-height: 1080px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
       position: relative;
     }
 
@@ -182,7 +183,6 @@
       text-align: center;
       vertical-align: middle;
       font-family: 'Times New Roman', Times, serif;
-    }
     }
 
     .rubric-table td.criteria-col {
@@ -300,9 +300,11 @@
         background: #ffffff;
         padding: 0;
       }
-      .toolbar { display: none; }
-      .report-wrapper { box-shadow: none; max-width: 100%; }
+      .toolbar { display: none !important; }
+      .report-wrapper { box-shadow: none; max-width: 100%; margin: 0; background: transparent; }
       .report-page {
+        box-shadow: none !important;
+        margin-bottom: 0 !important;
         padding: 10mm 12mm;
         min-height: auto;
       }
@@ -328,7 +330,7 @@
   <div class="report-wrapper">
 
     <!-- ================= PAGE 1: DIU COVER PAGE ================= -->
-    <div class="report-page" style="display: flex; flex-col: column; justify-content: flex-start;">
+    <div class="report-page" style="display: block;">
       
       <!-- DIU Logo Header -->
       <div style="text-align: center; margin-top: 10px; margin-bottom: 25px;">
