@@ -1,18 +1,18 @@
-# DS422: Machine Learning Driven Data Analysis Lab I (DS Major) &mdash; Lab Final Report
+# DS422: Machine Learning Driven Data Analysis Lab I (DS Major) &mdash; Lab Task Report
 **Daffodil International University (DIU)**  
 **Department of Data Science**
 
 **Project Title:** Benchmarking Supervised Classifiers for Diabetes Risk Screening Using CDC BRFSS Health Indicators  
 **Course Code:** DS422  
 **Course Title:** Machine Learning Driven Data Analysis Lab I (DS Major)  
-**Semester:** Fall 26  
+**Semester:** Fall 2026  
 **Section:** E1  
 **Batch:** 41  
 **Student Name:** Imranul Islam Shihab  
 **Student ID:** 232-35-733  
 **Course Teacher:** Md. Fahad Hossain  
 **Designation:** Lecturer (Senior Scale)  
-**Submission Date:** 22 Nov, 2026  
+**Submission Date:** 22 November, 2026  
 **Live Showcase:** [https://mlids422.vercel.app](https://mlids422.vercel.app)  
 **Online Report:** [https://mlids422.vercel.app/report.html](https://mlids422.vercel.app/report.html)  
 **Direct PDF Download:** [https://mlids422.vercel.app/DS422_Lab_Report_232-35-733.pdf](https://mlids422.vercel.app/DS422_Lab_Report_232-35-733.pdf)
