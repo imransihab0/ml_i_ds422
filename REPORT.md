@@ -2,118 +2,134 @@
 **Daffodil International University (DIU)**  
 **Department of Data Science**
 
-**Project Title:** Benchmarking Supervised Classifiers for Diabetes Risk Screening Using CDC BRFSS Health Indicators  
-**Course Code:** DS422  
-**Course Title:** Machine Learning Driven Data Analysis Lab I (DS Major)  
-**Semester:** Fall 2026  
-**Section:** E1  
-**Batch:** 41  
-**Student Name:** Imranul Islam Shihab  
-**Student ID:** 232-35-733  
-**Course Teacher:** Md. Fahad Hossain  
-**Designation:** Lecturer (Senior Scale)  
-**Submission Date:** 22 November, 2026  
-**Live Showcase:** [https://mlids422.vercel.app](https://mlids422.vercel.app)  
-**Online Report:** [https://mlids422.vercel.app/report.html](https://mlids422.vercel.app/report.html)  
-**Direct PDF Download:** [https://mlids422.vercel.app/DS422_Lab_Report_232-35-733.pdf](https://mlids422.vercel.app/DS422_Lab_Report_232-35-733.pdf)
+---
+
+### Academic Metadata
+- **Project Title:** Machine Learning Driven Forest Canopy Cover Type Prediction Using Cartographic & Remote Sensing Variables
+- **Dataset:** UCI Machine Learning Repository &mdash; Covertype Dataset (ID: 31)
+- **Course Code:** DS422
+- **Course Title:** Machine Learning Driven Data Analysis Lab I (DS Major)
+- **Semester:** Fall 2026
+- **Section:** E1
+- **Batch:** 41
+- **Student Name:** Imranul Islam Shihab
+- **Student ID:** 232-35-733
+- **Course Teacher:** Md. Fahad Hossain
+- **Designation:** Lecturer (Senior Scale)
+- **Submission Date:** 22 November, 2026
+- **Live Showcase Dashboard:** [https://mlids422.vercel.app](https://mlids422.vercel.app)
+- **Online Academic Report:** [https://mlids422.vercel.app/report.html](https://mlids422.vercel.app/report.html)
+- **Direct PDF Download:** [https://mlids422.vercel.app/DS422_Lab_Report_232-35-733.pdf](https://mlids422.vercel.app/DS422_Lab_Report_232-35-733.pdf)
 
 ---
 
-## Abstract
-Diabetes mellitus represents one of the most critical global chronic healthcare burdens, with millions remaining undiagnosed until severe microvascular and macrovascular complications develop. This investigation conducts an end-to-end empirical benchmark of supervised machine learning architectures—**Logistic Regression**, **Decision Tree**, **Random Forest**, and **XGBoost**—applied to 253,680 public health survey records from the CDC's Behavioral Risk Factor Surveillance System (BRFSS 2015). Addressing a realistic 84.7% to 15.3% class imbalance, we implement rigorous deduplication (removing 24,206 duplicate profiles to prevent leakage), percentile-based BMI outlier mitigation, leak-free standardized feature pipelines, and cost-sensitive loss weighting. Evaluated on a 20% stratified test set (45,895 samples), **Random Forest** emerged as the premier screening classifier, attaining an **ROC-AUC of 0.8176**, a **Balanced Accuracy of 0.7399**, and an affirmative clinical **Recall of 75.69%** (identifying 5,313 out of 7,019 diabetic patients). Feature attribution identified General Health perception (`GenHlth`), High Blood Pressure (`HighBP`), Body Mass Index (`BMI`), Age bracket (`Age`), and High Cholesterol (`HighChol`) as the dominant non-invasive risk drivers.
+## 1. Introduction
+
+### 1.1 Background
+Accurate forest canopy cover type mapping is fundamental for ecological conservation, natural resource management, biodiversity monitoring, and wildfire danger modeling. In subalpine and montane forest ecosystems, identifying specific tree canopy species across thousands of square kilometers of mountainous terrain presents severe logistical challenges. Ground-based forestry inventories are prohibitively expensive, time-consuming, hazardous, and limited to accessible areas. Remote sensing, combined with geographic information systems (GIS) and modern machine learning algorithms, offers an automated, scalable alternative to infer forest species distributions directly from digital elevation models (DEM), hydrological flow networks, solar radiation dynamics, and geological soil surveys.
+
+The Roosevelt National Forest in northern Colorado encompasses a complex mountainous biome characterized by dramatic elevation gradients, steep topography, and diverse soil regimes. High-elevation stands are predominantly dominated by *Spruce/Fir* (Engelmann Spruce and Subalpine Fir), which provide critical watershed protection and wildlife habitat.
+
+### 1.2 Problem Statement
+The primary objective of this project is to construct and benchmark a supervised binary classification system that predicts the presence of high-altitude **Spruce/Fir** forest cover versus other montane forest tree species (including Lodgepole Pine, Ponderosa Pine, Cottonwood/Willow, Aspen, Douglas-fir, and Krummholz) strictly utilizing 54 cartographic and topographical environmental variables without any remote-sensed optical imagery or manual field intervention.
+
+$$\mathbf{x}_i \in \mathbb{R}^{54} \implies f(\mathbf{x}_i) \in \{0, 1\}$$
+
+where $y_i = 1$ denotes Spruce/Fir and $y_i = 0$ denotes alternative forest covers.
+
+### 1.3 Motivation
+1. **Scalable Ecological Inventory:** Eliminates continuous manual surveying, allowing forest service agencies to update canopy maps instantaneously as digital terrain models update.
+2. **Wildfire Risk Stratification:** Different forest canopies carry vastly different fuel loads, moisture retention capacities, and crown fire potentials.
+3. **Climate Change Adaptation:** High-altitude spruce-fir biomes are among the most vulnerable to warming temperatures and bark beetle infestations; rapid detection of shifts in their geographic boundaries provides early-warning bioindicators.
 
 ---
 
-## 1. Introduction & Problem Formulation
-According to the Centers for Disease Control and Prevention (CDC), over 37 million Americans suffer from diabetes, while an estimated 96 million adults exhibit prediabetes. Because early-stage hyperglycemia is frequently asymptomatic, non-invasive triage models capable of flagging high-risk individuals using routine lifestyle, clinical history, and demographic indicators are vital for early intervention.
+## 2. Dataset Description
 
-From a machine learning engineering standpoint, disease screening presents asymmetric error costs. A **False Negative (Type II error)**—failing to detect an undiagnosed diabetic patient—leads to disease progression and costly acute emergencies. Conversely, a **False Positive (Type I error)** merely prompts a confirmatory blood test (e.g., HbA1c or fasting plasma glucose). Consequently, standard classification Accuracy is a deceptive performance indicator due to severe class imbalance (~85% healthy vs. ~15% diabetic). This research formulates diabetes detection as an imbalanced, cost-sensitive classification problem prioritizing **Sensitivity (Recall)**, **Balanced Accuracy**, and **Area Under the ROC Curve (ROC-AUC)** over raw accuracy.
-
----
-
-## 2. Dataset Description & Engineering
-The study employs the CDC BRFSS 2015 health indicators dataset mirrored on the UCI Machine Learning Repository (ID: 891). The dataset comprises 253,680 raw respondent profiles across 21 predictive variables capturing clinical diagnoses, dietary habits, physical mobility, and socioeconomic indicators, coupled with a binary target: `Diabetes_binary` (0 = No Diabetes, 1 = Prediabetes / Diabetes).
-
-### 2.1 Preprocessing Pipeline
-1. **Exact Deduplication:** Comprehensive audit identified 24,206 duplicate rows arising from survey response permutations. Dropping these exact duplicates reduced the cohort to **229,474 unique records**, strictly avoiding data leakage between training and evaluation partitions.
-2. **Outlier Mitigation:** Self-reported Body Mass Index (`BMI`) reached biologically implausible values up to 98. Extreme values were capped at the 1st and 99th percentiles (`[18.0, 50.0]`), preserving sample integrity while stabilizing gradient-based and linear estimators.
-3. **Stratified Partitioning:** An 80/20 train/test split was executed with target stratification (`random_state=42`), yielding **183,579 training records** and **45,895 test records**, preserving the exact 15.29% prevalence across sets.
-4. **Leak-Free Scaling:** Continuous and ordinal features were scaled using `StandardScaler` strictly within a cross-validation pipeline fitted solely on training partitions.
-
-### 2.2 Feature Dictionary
-| Attribute | Type | Category | Description & Encoding Scale |
-| :--- | :--- | :--- | :--- |
-| `Diabetes_binary` | Binary | Target | 0 = Healthy, 1 = Prediabetes or Diagnosed Diabetes |
-| `HighBP` | Binary | Clinical | Adults diagnosed with hypertension (0=No, 1=Yes) |
-| `HighChol` | Binary | Clinical | Adults told their blood cholesterol is elevated (0=No, 1=Yes) |
-| `CholCheck` | Binary | Clinical | Cholesterol checked within the past 5 years (0=No, 1=Yes) |
-| `BMI` | Continuous | Clinical | Body Mass Index (clipped to 1st–99th percentile: 18.0–50.0) |
-| `Smoker` | Binary | Lifestyle | Smoked at least 100 cigarettes in lifetime (0=No, 1=Yes) |
-| `Stroke` | Binary | Clinical | Ever told respondent had a stroke (0=No, 1=Yes) |
-| `HeartDiseaseorAttack` | Binary | Clinical | Coronary heart disease (CHD) or myocardial infarction (0=No, 1=Yes) |
-| `PhysActivity` | Binary | Lifestyle | Physical activity in past 30 days excluding job (0=No, 1=Yes) |
-| `Fruits` / `Veggies` | Binary | Lifestyle | Consumes fruit / vegetables &ge;1 time per day (0=No, 1=Yes) |
-| `HvyAlcoholConsump` | Binary | Lifestyle | Heavy drinker: Men &gt;14 drinks/wk, Women &gt;7 drinks/wk |
-| `GenHlth` | Ordinal | Clinical | Subjective health rating: 1=Excellent, 2=Very Good ... 5=Poor |
-| `MentHlth` / `PhysHlth` | Discrete | Clinical | Days of poor mental / physical health in past 30 days (0–30) |
-| `DiffWalk` | Binary | Clinical | Difficulty walking or climbing stairs (0=No, 1=Yes) |
-| `Sex` | Binary | Demographic | Respondent biological sex (0 = Female, 1 = Male) |
-| `Age` | Ordinal | Demographic | 13-level bracket: 1=18–24 up to 13=80+ years |
-| `Education` / `Income` | Ordinal | Socioeconomic | Levels 1–6 (Education) and 1–8 (Household income) |
+- **Source:** UCI Machine Learning Repository (Donated by Jock A. Blackard & Denis J. Dean, Colorado State University & US Forest Service Region 2).
+- **UCI Dataset ID:** 31
+- **Direct Repository Link:** [https://archive.ics.uci.edu/dataset/31/covertype](https://archive.ics.uci.edu/dataset/31/covertype)
+- **Observations:** 581,012 raw 30m $	imes$ 30m cartographic cells.
+- **Stratified Sample:** 50,000 instances (40,000 training, 10,000 testing).
+- **Target Distribution:** 36.80% positive ($y = 1$, Spruce/Fir) vs 63.20% negative ($y = 0$, Other Forest Species).
+- **Attributes (54 features):**
+  - 10 continuous topographical variables: Elevation, Aspect, Slope, Horizontal/Vertical Distance to Hydrology, Horizontal Distance to Roadways, Hillshade at 9am, Noon, 3pm, Horizontal Distance to Fire Points.
+  - 4 binary Wilderness Areas: Rawah (Area 1), Neota (Area 2), Comanche Peak (Area 3), Cache la Poudre (Area 4).
+  - 40 binary USDA Geological Soil Types.
 
 ---
 
 ## 3. Exploratory Data Analysis (EDA)
-- **Target Imbalance:** 194,377 healthy cases (84.71%) vs. 35,097 diabetic cases (15.29%). An unadjusted model predicting class 0 would achieve 84.7% accuracy with 0% utility.
-- **Monotonic Risk Factors:** Diabetes prevalence scales sharply with poorer `GenHlth` (from 2.1% in excellent health to 38.4% in poor health), doubles in the presence of `HighBP` (6.2% vs. 27.2%), and steadily increases across `Age` categories.
-- **Linear Correlations:** Highest linear correlations with diabetes diagnosis are observed in `GenHlth` (r = 0.29), `HighBP` (r = 0.26), `DiffWalk` (r = 0.21), `BMI` (r = 0.21), and `HighChol` (r = 0.20).
+
+Three diagnostic figures characterize the feature space:
+1. **Figure 1 (Target Distribution):** 36.80% Spruce/Fir vs 63.20% Other species, demonstrating realistic ecological class distribution without synthetic distortion.
+2. **Figure 2 (Elevation Distribution):** Clear vertical zonation. High-altitude Spruce/Fir stands have a median elevation exceeding 3,150m, while competing species concentrate between 2,500m and 2,900m.
+3. **Figure 3 (Correlation Matrix):** Strong physical relationships: Hillshade 9am vs 3pm ($r = -0.78$) capturing diurnal solar shifts, and Horizontal vs Vertical Distance to Hydrology ($r = 0.61$).
 
 ---
 
-## 4. Model Architectures & Cost-Sensitive Setup
-Four models were trained with cost-sensitive class balancing on 183,579 training records:
-1. **Logistic Regression:** Scaled linear baseline with L2 penalty and `class_weight="balanced"`.
-2. **Decision Tree:** Regularized CART classifier (`max_depth=10`, `min_samples_leaf=50`, `class_weight="balanced"`).
-3. **Random Forest:** Bagged ensemble of 200 trees (`max_depth=14`, `min_samples_leaf=20`, `class_weight="balanced"`).
-4. **XGBoost:** Gradient boosted decision trees (250 trees, `max_depth=6`, `learning_rate=0.08`, `subsample=0.8`, `colsample_bytree=0.8`, `scale_pos_weight=5.54`).
+## 4. Preprocessing & Data Cleaning
+
+- **Deduplication:** 0 exact duplicate rows found in sample.
+- **Missing Values:** Complete 54-column audit verified 0 missing or NaN values.
+- **Outlier Capping:** Continuous distance features (Hydrology, Roadways, Fire Points) subjected to 1st–99th percentile Winsorization.
+- **Feature Scaling:** `StandardScaler` applied within cross-validated pipelines to continuous features, eliminating data leakage.
+- **Splitting:** 80/20 stratified split (40,000 train / 10,000 test) preserving the 36.80% positive prevalence.
 
 ---
 
-## 5. Empirical Results (Test Set: 45,895 instances)
+## 5. Model Benchmarking & Empirical Results
 
-| Classifier Model | ROC-AUC | PR-AUC | Recall (Sensitivity) | Precision | F1-Score | Balanced Acc | Raw Accuracy |
+Four supervised classification architectures were benchmarked on the 10,000 holdout test samples:
+
+| Model Architecture | Accuracy | Balanced Acc. | Precision | Recall | F1-Score | ROC-AUC | PR-AUC |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Random Forest (Best)** | **0.8176** | 0.4431 | **0.7569** | **0.3303** | **0.4599** | 0.7399 | **0.7281** |
-| **XGBoost** | 0.8170 | **0.4437** | 0.7786 | 0.3201 | 0.4537 | **0.7400** | 0.7132 |
-| **Logistic Regression** | 0.8120 | 0.4268 | 0.7619 | 0.3191 | 0.4498 | 0.7342 | 0.7149 |
-| **Decision Tree** | 0.8046 | 0.4210 | 0.7671 | 0.3078 | 0.4393 | 0.7278 | 0.7005 |
+| **Logistic Regression** | 76.31% | 77.30% | 64.08% | 81.06% | 71.58% | 0.8441 | 0.7237 |
+| **Decision Tree** | 80.37% | 80.76% | 69.80% | 82.23% | 75.51% | 0.8782 | 0.7855 |
+| **Random Forest** | 82.34% | 83.01% | 71.84% | 85.54% | 78.09% | 0.9176 | 0.8725 |
+| **XGBoost (Winner)** | **84.69%** | **85.36%** | **74.88%** | **87.88%** | **80.86%** | **0.9351** | **0.8955** |
 
-### Confusion Matrix Breakdown (Random Forest)
-- **True Negatives (TN):** 28,103
-- **False Positives (FP):** 10,773
-- **False Negatives (FN):** 1,706
-- **True Positives (TP):** 5,313
-- **Clinical Sensitivity:** **75.69%** (5,313 out of 7,019 diabetic patients correctly flagged).
+### Winning Model Details (XGBoost)
+- **True Negatives (TN):** 5,235
+- **False Positives (FP):** 1,085
+- **False Negatives (FN):** 446 (only 12.1% miss rate)
+- **True Positives (TP):** 3,234 (87.88% sensitivity)
+- **Class 0 Precision / Recall / F1:** 0.92 / 0.83 / 0.87
+- **Class 1 Precision / Recall / F1:** 0.75 / 0.88 / 0.81
 
----
-
-## 6. Feature Importance & Interpretability
-The top 12 predictive features identified by Gini importance in the Random Forest model:
-1. `GenHlth` (14.2%): Strongest single non-invasive risk predictor.
-2. `HighBP` (11.8%): Strongly tied to metabolic syndrome and microvascular strain.
-3. `BMI` (11.2%): Adiposity and insulin resistance biomarker.
-4. `Age` (9.8%): Age-related pancreatic beta-cell decline.
-5. `HighChol` (7.8%): Dyslipidemia component.
-6. `Income` (6.2%) & `Education` (3.8%): Social determinants of health.
-7. `PhysHlth` (5.5%) & `DiffWalk` (4.8%): Physical functioning impairment.
-8. `HeartDiseaseorAttack` (4.2%): Cardiovascular comorbidity.
-9. `MentHlth` (3.6%) & `PhysActivity` (3.2%): Psychological well-being and lifestyle.
+### Top Predictive Features (Random Forest Gini Impurity & XGBoost Gain)
+1. **Elevation:** ~24.5% importance
+2. **Horizontal Distance to Roadways:** ~12.8%
+3. **Horizontal Distance to Fire Points:** ~9.2%
+4. **Horizontal Distance to Hydrology:** ~6.4%
+5. **Vertical Distance to Hydrology:** ~5.1%
 
 ---
 
-## 7. Conclusions & Next Steps
-- **Engineering Verdict:** Cost-sensitive ensemble learning (Random Forest) is superior to single decision trees and linear baselines, achieving an ROC-AUC of 0.8176 and capturing over 75% of positive cases without invasive clinical lab tests.
-- **Future Work:** Clinical decision threshold optimization (&theta; tuning), integration with electronic health records (EHR), and SHAP local explainability.
+## 6. Generated Diagnostic Figures
+
+All 7 diagnostic figures are generated directly from the notebook and archived in `plots.zip`:
+- `plots/01_target_distribution.png`: Target Class Distribution
+- `plots/02_elevation_distribution.png`: Elevation Distribution Across Forest Classes
+- `plots/03_correlation_heatmap.png`: Pearson Topographical Correlation Matrix
+- `plots/04_model_comparison.png`: 5-Metric Benchmark Comparison Bar Chart
+- `plots/05_roc_curves.png`: Receiver Operating Characteristic (ROC) Benchmark Curves
+- `plots/06_confusion_matrix.png`: Confusion Matrix Heatmap (Winning Classifier: XGBoost)
+- `plots/07_feature_importance.png`: Top 15 Feature Importances Ranked by Gini Weight
 
 ---
-*Report submitted for DS422: Machine Learning Driven Data Analysis Lab I (DS Major) &middot; Section E1 &middot; Batch 41 &middot; Daffodil International University &middot; Course Teacher: Md. Fahad Hossain, Lecturer (Senior Scale) &middot; Student: Imranul Islam Shihab (ID: 232-35-733)*
+
+## 7. Conclusion & Research Insights
+
+1. **Gradient Boosting Supremacy:** XGBoost achieved the best performance across all seven statistical criteria, with an accuracy of 84.69% and an ROC-AUC of 0.9351.
+2. **Non-linear Ensemble Advantage:** Tree ensembles outperformed linear models by over 8 percentage points, showing that complex terrain interactions require non-linear decision boundaries.
+3. **Elevation Dominance:** Topographical elevation accounts for roughly one-quarter of total decision weight, reflecting the strong thermal and microclimatic zonation of the Rocky Mountains.
+4. **Operational Deployment:** The low false negative rate (only 446 missed out of 3,680 positive instances) ensures that operational conservation teams can delineate critical spruce-fir habitats with high sensitivity.
+
+---
+
+### Submission Verification
+- **Student:** Imranul Islam Shihab (ID: 232-35-733, Batch 41, Section E1)
+- **Course Teacher:** Md. Fahad Hossain, Lecturer (Senior Scale)
+- **Department:** Department of Data Science, Daffodil International University (DIU)
+- **Date:** 22 November, 2026
