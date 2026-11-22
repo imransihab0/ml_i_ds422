@@ -1,6 +1,5 @@
 # DS422: Machine Learning Driven Data Analysis Lab I (DS Major) &mdash; Lab Task Report
-**Daffodil International University (DIU)**  
-**Department of Data Science**
+**Daffodil International University (DIU)**
 
 ---
 
@@ -131,5 +130,5 @@ All 7 diagnostic figures are generated directly from the notebook and archived i
 ### Submission Verification
 - **Student:** Imranul Islam Shihab (ID: 232-35-733, Batch 41, Section E1)
 - **Course Teacher:** Md. Fahad Hossain, Lecturer (Senior Scale)
-- **Department:** Department of Data Science, Daffodil International University (DIU)
+- **Institution:** Daffodil International University (DIU)
 - **Date:** 22 November, 2026
