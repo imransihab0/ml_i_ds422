@@ -45,7 +45,9 @@ where $y_i = 1$ denotes Spruce/Fir and $y_i = 0$ denotes alternative forest cove
 
 ## 2. Dataset Description
 
-- **Source:** UCI Machine Learning Repository (Donated by Jock A. Blackard & Denis J. Dean, Colorado State University & US Forest Service Region 2).
+- **Dataset Name:** Forest Covertype (UCI ID: 31)
+- **Release / Donation Year:** **1998** (Donated to UCI Machine Learning Repository)
+- **Source & Donors:** Jock A. Blackard & Denis J. Dean, Colorado State University & US Forest Service Region 2 (1998)
 - **UCI Dataset ID:** 31
 - **Direct Repository Link:** [https://archive.ics.uci.edu/dataset/31/covertype](https://archive.ics.uci.edu/dataset/31/covertype)
 - **Observations:** 581,012 raw 30m $	imes$ 30m cartographic cells.
